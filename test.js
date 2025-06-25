@@ -1,68 +1,40 @@
-const form = document.getElementById('todo-form');
-const input = document.getElementById('todo-input');
-const container = document.getElementById('todo-container');
+document.getElementById('feedbackForm').addEventListener('submit', function(e) {
+  e.preventDefault();
 
-let todoList = JSON.parse(localStorage.getItem('todos')) || [];
+  const name = document.getElementById('name').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const course = document.getElementById('course').value.trim();
+  const feedback = document.getElementById('feedback').value.trim();
 
-function saveToLocal() {
-  localStorage.setItem('todos', JSON.stringify(todoList));
-}
+  if (!name || !email || !course || !feedback) {
+    alert("Please fill all fields");
+    return;
+  }
 
-function renderTodos() {
-  container.innerHTML = '';
-  todoList.forEach(({ id, text, completed }) => {
+  const feedbackEntry = { name, email, course, feedback };
+  let feedbackData = JSON.parse(localStorage.getItem("feedbackData")) || [];
+  feedbackData.push(feedbackEntry);
+  localStorage.setItem("feedbackData", JSON.stringify(feedbackData));
+
+  showFeedback();
+  this.reset();
+});
+
+function showFeedback() {
+  const feedbackList = document.getElementById('feedbackList');
+  const feedbackData = JSON.parse(localStorage.getItem("feedbackData")) || [];
+
+  feedbackList.innerHTML = "";
+
+  feedbackData.forEach(entry => {
     const div = document.createElement('div');
-    div.className = 'todo-item';
-
-    const leftSide = document.createElement('div');
-    leftSide.className = 'todo-left';
-
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.checked = completed;
-    checkbox.addEventListener('change', () => {
-      todoList = todoList.map(todo =>
-        todo.id === id ? { ...todo, completed: checkbox.checked } : todo
-      );
-      saveToLocal();
-      renderTodos();
-    });
-
-    const span = document.createElement('span');
-    span.textContent = text;
-    span.className = `todo-text ${completed ? 'completed' : ''}`;
-
-    leftSide.appendChild(checkbox);
-    leftSide.appendChild(span);
-
-    const deleteIcon = document.createElement('span');
-    deleteIcon.className = 'material-icons-outlined';
-    deleteIcon.textContent = 'delete';
-    deleteIcon.addEventListener('click', () => {
-      todoList = todoList.filter(todo => todo.id !== id);
-      saveToLocal();
-      renderTodos();
-    });
-
-    div.appendChild(leftSide);
-    div.appendChild(deleteIcon);
-    container.appendChild(div);
+    div.className = "feedback-item";
+    div.innerHTML = `<strong>${entry.name}</strong> (${entry.email})<br>
+                     <em>${entry.course}</em><br>
+                     ${entry.feedback}`;
+    feedbackList.appendChild(div);
   });
 }
 
-form.addEventListener('submit', (e) => {
-  e.preventDefault();
-  const newTodo = {
-    id: Date.now().toString(),
-    text: input.value.trim(),
-    completed: false,
-  };
-  if (newTodo.text !== '') {
-    todoList.push(newTodo);
-    saveToLocal();
-    renderTodos();
-    input.value = '';
-  }
-});
-
-renderTodos();
+// Load feedback on page load
+window.onload = showFeedback;
